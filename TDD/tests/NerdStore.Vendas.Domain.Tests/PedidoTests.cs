@@ -72,5 +72,73 @@ namespace NerdStore.Vendas.Domain.Tests
             var pedido = Pedido.Factory.NovoPedidoRascunho(Guid.NewGuid());
             Assert.Throws<DomainException>(testCode: () => new PedidoItem(id: Guid.NewGuid(), nome: "Produto Teste", quantidade: Pedido.MIN_UNIDADES_ITEM - 1, valor: 100));
         }
+
+        [Fact(DisplayName = "Atualizar Item Pedido Inexistente")]
+        public void AtualizarItemPedido_ItemNaoExiste_DeveRetornarException()
+        {
+            // Arrange
+            var pedido = Pedido.Factory.NovoPedidoRascunho(Guid.NewGuid());
+            var pedidoItem = new PedidoItem(id: Guid.NewGuid(), nome: "Produto Teste", quantidade: Pedido.MAX_UNIDADES_ITEM + 1, valor: 100);
+
+            // Act e Assert
+            Assert.Throws<DomainException>(testCode: () => pedido.AtualizarItem(pedidoItem));
+        }
+
+        [Fact(DisplayName = "Atualizar Item Pedido Valido")]
+        public void AtualizarItemPedido_ItemValido_DeveAtualizarQuantidade()
+        {
+            // Arrange
+            var pedido = Pedido.Factory.NovoPedidoRascunho(Guid.NewGuid());
+            var productId = Guid.NewGuid();
+            var pedidoItem = new PedidoItem(id: productId, nome: "Produto Teste", quantidade: 1, valor: 100);
+            pedido.AdicionarItem(pedidoItem);
+            var pedidoItemAtualizado = new PedidoItem(id: productId, nome: "Produto Teste", quantidade: 5, valor: 100);
+
+            // Act
+            pedido.AtualizarItem(pedidoItemAtualizado);
+
+            // Act e Assert
+            Assert.Equal(expected: 5, actual: pedido.Items.FirstOrDefault(i => i.Id == productId).Quantidade);
+        }
+
+        [Fact(DisplayName = "Atualizar Item Pedido Validar Total")]
+        public void AtualizarItemPedido_ItemsDiferentes_DeveAtualizarValorTotal()
+        {
+            // Arrange
+            var pedido = Pedido.Factory.NovoPedidoRascunho(Guid.NewGuid());
+            var productId = Guid.NewGuid();
+
+            var pedidoItem1 = new PedidoItem(id: Guid.NewGuid(), nome: "Produto Teste A", quantidade: 2, valor: 100);
+            var pedidoItem2 = new PedidoItem(id: productId, nome: "Produto Teste B", quantidade: 3, valor: 15);
+
+            pedido.AdicionarItem(pedidoItem1);
+            pedido.AdicionarItem(pedidoItem2);
+
+            var pedidoItemAtualizado = new PedidoItem(id: productId, nome: "Produto Teste B", quantidade: 5, valor: 15);
+
+            var totalPedido = (pedidoItem1.Quantidade * pedidoItem1.ValorUnitario) +
+                              (pedidoItemAtualizado.Quantidade * pedidoItemAtualizado.ValorUnitario);
+            // Act
+            pedido.AtualizarItem(pedidoItemAtualizado);
+
+            // Assert
+            Assert.Equal(expected: totalPedido, actual: pedido.ValorTotal);
+        }
+
+        [Fact(DisplayName = "Atualizar Item Pedido Quantidade Acima do Permitido")]
+        public void AtualizarItemPedido_ItemsAcimaDoPermitido_DeveRetornarException()
+        {
+            // Arrange
+            var pedido = Pedido.Factory.NovoPedidoRascunho(Guid.NewGuid());
+            var productId = Guid.NewGuid();
+            var pedidoItem1 = new PedidoItem(id: Guid.NewGuid(), nome: "Produto Teste", quantidade: 3, valor: 100);
+
+            pedido.AdicionarItem(pedidoItem1);
+
+            var pedidoItemAtualizado = new PedidoItem(id: productId, nome: "Produto Teste", quantidade: Pedido.MAX_UNIDADES_ITEM + 1, valor: 15);
+
+            // Act e Assert
+            Assert.Throws<DomainException>(testCode: () => pedido.AtualizarItem(pedidoItemAtualizado));
+        }
     }
 }
