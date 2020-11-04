@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NerdStore.Core.DomainObjects;
+using FluentValidation.Results;
 
 namespace NerdStore.Vendas.Domain
 {
@@ -19,11 +20,17 @@ namespace NerdStore.Vendas.Domain
 
         public decimal ValorTotal { get; private set; }
 
+        public decimal Desconto { get; private set; }
+
         private readonly List<PedidoItem> _items;
 
         public IReadOnlyCollection<PedidoItem> Items => _items;
 
         public PedidoStatus Status{ get; private set; }
+
+        public Voucher Voucher { get; private set; }
+
+        public bool VoucherUtilizado { get; private set; }
 
         protected Pedido()
         {
@@ -93,13 +100,55 @@ namespace NerdStore.Vendas.Domain
         }
 
         private void CarcularValorPedido()
-        {
+        { 
             ValorTotal = _items.Sum(i => i.CalcularValor());
+
+            CalcularValorTotalDesconto();
         }
 
         public void TornarRascunho()
         {
             Status = PedidoStatus.Rascunho;
+        }
+
+        public ValidationResult AplicarVoucher(Voucher voucher)
+        {
+            var result = voucher.ValidarSeAplicavel();
+            if (!result.IsValid) return result;
+
+            Voucher = voucher;
+            VoucherUtilizado = true;
+
+            CalcularValorTotalDesconto();
+
+            return result;
+        }
+
+        public void CalcularValorTotalDesconto()
+        {
+            if (!VoucherUtilizado) return;
+
+            decimal desconto = 0;
+            var valorComDesconto = ValorTotal;
+
+            if (Voucher.TipoDesconto == TipoDesconto.Valor)
+            {
+                if (Voucher.ValorDesconto.HasValue)
+                {
+                    desconto = Voucher.ValorDesconto.Value;
+                    valorComDesconto -= desconto;
+                }
+            }
+            else
+            {
+                if (Voucher.PercentualDesconto.HasValue)
+                {
+                    desconto = (ValorTotal * Voucher.PercentualDesconto.Value) / 100;
+                    valorComDesconto -= desconto;
+                }
+            }
+            ValorTotal = valorComDesconto < 0 ? 0 : valorComDesconto;
+            Desconto = desconto;
         }
 
         public static class Factory
