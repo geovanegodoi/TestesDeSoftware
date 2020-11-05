@@ -11,7 +11,7 @@ namespace NerdStore.Vendas.Domain
         Rascunho = 0, Iniciado=1, Pago=2, Entregue=3, Cancelado=4
     }
 
-    public class Pedido
+    public class Pedido : Entity, IAggregateRoot
     {
         public static int MAX_UNIDADES_ITEM = 15;
         public static int MIN_UNIDADES_ITEM = 1;
@@ -37,7 +37,7 @@ namespace NerdStore.Vendas.Domain
             _items = new List<PedidoItem>();
         }
 
-        private bool PedidoItemExiste(PedidoItem item)
+        public bool PedidoItemExiste(PedidoItem item)
         {
             return _items.Any(i => i.Id == item.Id);
         }
