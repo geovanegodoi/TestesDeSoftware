@@ -3,29 +3,31 @@ using NerdStore.Core.DomainObjects;
 
 namespace NerdStore.Vendas.Domain
 {
-    public class PedidoItem
+    public class PedidoItem : Entity
     {
-        public Guid Id { get; private set; }
-
-        public string Nome { get; private set; }
-
+        public Guid PedidoId { get; private set; }
+        public Guid ProdutoId { get; private set; }
+        public string ProdutoNome { get; private set; }
         public int Quantidade { get; private set; }
-
         public decimal ValorUnitario { get; private set; }
 
-        public PedidoItem(Guid id, string nome, int quantidade, decimal valor)
-        {
-            if (quantidade < Pedido.MIN_UNIDADES_ITEM) throw new DomainException($"Minimo de {Pedido.MIN_UNIDADES_ITEM} unidade por produto");
+        // EF Rel.
+        public Pedido Pedido { get; set; }
 
-            Id = id;
-            Nome = nome;
+        public PedidoItem(Guid produtoId, string produtoNome, int quantidade, decimal valorUnitario)
+        {
+            if (quantidade < Pedido.MIN_UNIDADES_ITEM) throw new DomainException($"Mínimo de {Pedido.MIN_UNIDADES_ITEM} unidades por produto");
+
+            ProdutoId = produtoId;
+            ProdutoNome = produtoNome;
             Quantidade = quantidade;
-            ValorUnitario = valor;
+            ValorUnitario = valorUnitario;
         }
+        protected PedidoItem() { }
 
-        internal void AdicionarQuantidade(int quantidade)
+        internal void AssociarPedido(Guid pedidoId)
         {
-            Quantidade += quantidade;
+            PedidoId = pedidoId;
         }
 
         internal decimal CalcularValor()
@@ -33,9 +35,14 @@ namespace NerdStore.Vendas.Domain
             return Quantidade * ValorUnitario;
         }
 
-        internal void AtualizarQuantidade(int quantidade)
+        internal void AdicionarUnidades(int unidades)
         {
-            Quantidade = quantidade;
+            Quantidade += unidades;
+        }
+
+        internal void AtualizarUnidades(int unidades)
+        {
+            Quantidade = unidades;
         }
     }
 }

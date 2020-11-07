@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using NerdStore.Core.DomainObjects;
+﻿using System.Threading.Tasks;
 
 namespace NerdStore.Core.Data
 {

@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace NerdStore.Vendas.Domain
+﻿namespace NerdStore.Vendas.Domain
 {
-    public abstract class Roteiro
+    public class Roteiro
     {
         /* DESENVOLVIMENTO DO DOMINIO DE VENDAS */
 
@@ -69,5 +67,4 @@ namespace NerdStore.Vendas.Domain
                 1.2 Verificar se o item já foi adicionado a lista
         */
     }
-
 }

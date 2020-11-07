@@ -16,6 +16,7 @@ using NerdStore.Catalogo.Data;
 using NerdStore.Vendas.Data;
 using NerdStore.WebApp.MVC.Models;
 using NerdStore.WebApp.MVC.Setup;
+using Microsoft.Extensions.Hosting;
 
 namespace NerdStore.WebApp.MVC
 {
@@ -23,7 +24,7 @@ namespace NerdStore.WebApp.MVC
     {
         public IConfiguration Configuration { get; }
 
-        public StartupApiTests(IHostingEnvironment hostEnvironment)
+        public StartupApiTests(IHostEnvironment hostEnvironment)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(hostEnvironment.ContentRootPath)
@@ -78,7 +79,7 @@ namespace NerdStore.WebApp.MVC
                 };
             });
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc(options => options.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
             services.AddHttpContextAccessor();
 
             services.AddAutoMapper(typeof(DomainToViewModelMappingProfile), typeof(ViewModelToDomainMappingProfile));
@@ -88,7 +89,7 @@ namespace NerdStore.WebApp.MVC
             services.RegisterServices();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostEnvironment env)
         {
             if (env.IsDevelopment())
             {

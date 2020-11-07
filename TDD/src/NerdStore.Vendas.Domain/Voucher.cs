@@ -1,43 +1,36 @@
 ﻿using System;
+using System.Collections.Generic;
 using FluentValidation;
 using FluentValidation.Results;
+using NerdStore.Core.DomainObjects;
 
 namespace NerdStore.Vendas.Domain
 {
-    public enum TipoDesconto
-    {
-        Porcentagem = 0, Valor = 1
-    }
-
-    public class Voucher
+    public class Voucher : Entity
     {
         public string Codigo { get; private set; }
-
-        public decimal? ValorDesconto { get; private set; }
-
         public decimal? PercentualDesconto { get; private set; }
-
+        public decimal? ValorDesconto { get; private set; }
         public int Quantidade { get; private set; }
-
+        public TipoDescontoVoucher TipoDescontoVoucher { get; private set; }
         public DateTime DataValidade { get; private set; }
-
         public bool Ativo { get; private set; }
-
         public bool Utilizado { get; private set; }
 
-        public TipoDesconto TipoDesconto { get; private set; }
+        // EF Rel.
+        public ICollection<Pedido> Pedidos { get; set; }
 
-        public Voucher(string codigo, decimal? valorDesconto, decimal? percentualDesconto, int quantidade,
-                       DateTime validade, bool ativo, bool utilizado, TipoDesconto tipoDesconto)
+        public Voucher(string codigo, decimal? percentualDesconto, decimal? valorDesconto, int quantidade,
+            TipoDescontoVoucher tipoDescontoVoucher, DateTime dataValidade, bool ativo, bool utilizado)
         {
-            Codigo              = codigo;
-            ValorDesconto       = valorDesconto;
-            PercentualDesconto  = percentualDesconto;
-            Quantidade          = quantidade;
-            DataValidade        = validade;
-            Ativo               = ativo;
-            Utilizado           = utilizado;
-            TipoDesconto        = tipoDesconto;
+            Codigo = codigo;
+            PercentualDesconto = percentualDesconto;
+            ValorDesconto = valorDesconto;
+            Quantidade = quantidade;
+            TipoDescontoVoucher = tipoDescontoVoucher;
+            DataValidade = dataValidade;
+            Ativo = ativo;
+            Utilizado = utilizado;
         }
 
         public ValidationResult ValidarSeAplicavel()
@@ -48,19 +41,14 @@ namespace NerdStore.Vendas.Domain
 
     public class VoucherAplicavelValidation : AbstractValidator<Voucher>
     {
-        public static string CodigoErroMsg => "Voucher sem código válido";
-
-        public static string DataValidadeErroMsg => "Este Voucher está expirado";
-
-        public static string AtivoErroMsg => "Este Voucher não é mais valido";
-
-        public static string UtilizadoErroMsg => "Este Voucher já foi utilizado";
-
-        public static string QuantidadeErroMsg => "Este Voucher não está mais disponível";
-
+        public static string CodigoErroMsg => "Voucher sem código válido.";
+        public static string DataValidadeErroMsg => "Este voucher está expirado.";
+        public static string AtivoErroMsg => "Este voucher não é mais válido.";
+        public static string UtilizadoErroMsg => "Este voucher já foi utilizado.";
+        public static string QuantidadeErroMsg => "Este voucher não está mais disponível";
         public static string ValorDescontoErroMsg => "O valor do desconto precisa ser superior a 0";
+        public static string PercentualDescontoErroMsg => "O valor da porcentagem de desconto precisa ser superior a 0";
 
-        public static string PercentualDescontoErroMsg => "O percentual de desconto precisa ser superior a 0";
 
         public VoucherAplicavelValidation()
         {
@@ -84,7 +72,7 @@ namespace NerdStore.Vendas.Domain
                 .GreaterThan(0)
                 .WithMessage(QuantidadeErroMsg);
 
-            When(f => f.TipoDesconto == TipoDesconto.Valor, () =>
+            When(f => f.TipoDescontoVoucher == TipoDescontoVoucher.Valor, () =>
             {
                 RuleFor(f => f.ValorDesconto)
                     .NotNull()
@@ -93,7 +81,7 @@ namespace NerdStore.Vendas.Domain
                     .WithMessage(ValorDescontoErroMsg);
             });
 
-            When(f => f.TipoDesconto == TipoDesconto.Porcentagem, () =>
+            When(f => f.TipoDescontoVoucher == TipoDescontoVoucher.Porcentagem, () =>
             {
                 RuleFor(f => f.PercentualDesconto)
                     .NotNull()
