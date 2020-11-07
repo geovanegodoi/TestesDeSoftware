@@ -265,9 +265,6 @@ namespace NerdStore.Vendas.Domain.Tests
 
             var voucher = new Voucher(codigo: "PROMO-300-REAIS", valorDesconto: 300, percentualDesconto: null, quantidade: 1,
                                       validade: DateTime.Now.AddDays(1), ativo: true, utilizado: false, tipoDesconto: TipoDesconto.Valor);
-
-            var valorDesconto = pedido.ValorTotal - voucher.ValorDesconto;
-
             // Act
             pedido.AplicarVoucher(voucher);
 
